@@ -1,0 +1,40 @@
+pipeine {
+    agent  any
+   
+    tools {
+        maven "maven22"
+    }
+    options {
+        timestamp
+        timeout(30)
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+               sh  'maven clean install'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo " disply results"
+                mail to: dhana@gmail.com subject: failure of test 
+            }
+        } 
+    }
+    post {
+        always {
+            failure {
+                echo " display error"
+            }
+
+            sucess {
+                echo "display"
+            }
+        }
+    }     
