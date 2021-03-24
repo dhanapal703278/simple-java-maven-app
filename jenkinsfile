@@ -25,15 +25,4 @@ pipeine {
                 echo " disply results" 
             }
         } 
-    }
-    post {
-        always {
-            failure {
-                echo " display error"
-            }
-
-            sucess {
-                echo "display"
-            }
-        }
-    }     
+}
