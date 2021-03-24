@@ -22,8 +22,7 @@ pipeine {
         }
         stage('Test') {
             steps {
-                echo " disply results"
-                mail to: dhana@gmail.com subject: failure of test 
+                echo " disply results" 
             }
         } 
     }
