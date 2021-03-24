@@ -1,12 +1,11 @@
-pipeine {
-    agent  any
-   
-    tools {
-        maven "maven22"
+pipeline {
+    agent any 
+    tool {
+        maven "maven123'
     }
     options {
-        timestamp
-        timeout(30)
+        timeout(10)
+        timestamps
     }
     stages {
         stage('Checkout') {
@@ -14,15 +13,24 @@ pipeine {
                 checkout scm
             }
         }
-
         stage('Build') {
             steps {
-               sh  'maven clean install'
+                sh "maven clean install"
             }
         }
         stage('Test') {
             steps {
-                echo " disply results" 
+                sh 'mvn test'
+        }
+        post {
+            always {
+                junit 'target/surefire-reports/*.xml'
             }
-        } 
+        }
+        stage ('Delivery') {
+            steps {
+                 sh './jenkins/scripts/deliver.sh'
+            }
+        }
+    }
 }
