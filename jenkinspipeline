@@ -1,0 +1,21 @@
+ pipeline {
+     agent {
+         docker {
+             image: 'dhanapal406/maven'
+             label 'dockernode'
+         }
+     }
+     stages {
+         stage('checkout') {
+             steps {
+                 git 'https://github.com/dhanapal703278/tomcat_maven_app.git'
+             }
+         }
+         stage('Build') {
+             steps {
+                 sh "maven clean install"
+             }
+         }
+         
+     }
+ }
