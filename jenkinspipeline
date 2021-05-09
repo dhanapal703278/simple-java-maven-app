@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'dhanapal406/maven_git_java:1'
+            image 'lokeshkamalay/maven'
             label 'dockernode'
         }
     }
