@@ -24,7 +24,8 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh "mvn test"junit allowEmptyResults: true, checksName: 'Tests', testResults: 'target/surefire-reports/*.xml'
+                sh "mvn test"
+                junit allowEmptyResults: true, checksName: 'Tests', testResults: 'target/surefire-reports/*.xml'
             }
         }
         stage('Post tasks') {
