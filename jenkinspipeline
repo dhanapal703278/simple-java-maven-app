@@ -19,7 +19,13 @@ pipeline {
         }
         stage('Test') {
             steps {
-                echo "display results "
+                sh "mvn test"
+                junit allowEmptyResults: true, checksName: 'Tests', testResults: 'target/surefire-reports/*.xml'
+            }
+        }
+        stage('Post tasks') {
+            steps {
+                sh " echo send an email"
             }
         }
     }
