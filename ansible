@@ -1,0 +1,117 @@
+#install docker and run container using ansible
+# Configuration of yum for Docker and Installing Docker :
+- hosts: all
+  tasks:
+  - name: Setting up yum for Docker
+    yum_repository:
+     name: docker
+     description: DOCKER YUM repo
+     file: docker_repo
+     baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+     enabled: 1
+     gpgcheck: 1
+     gpgkey: https://download.docker.com/linux/centos/gpg
+  - name: Installing Docker
+    command: yum install docker-ce --nobest -y
+# Start and enable Docker service :
+  - name: Start docker service
+    service:
+     name: docker
+     state: started
+     enabled: yes
+
+  - name: Install python
+    package:
+     name: python3
+     state: present
+
+  - name: Install docker-py
+    pip:
+     name: docker-py
+# install minikube and kubectl
+   handlers:
+  - name: disable swap
+    shell: |
+      swapoff -a
+  - name: sysctl system
+    shell: |
+      sysctl --system
+  - name: reload firewall
+    shell: |
+      firewall-cmd --reload
+  - name: start minikube
+    shell: |
+      minikube start --driver=none
+  - name: enable kubelet.service
+    service:
+      name: kubelet.service
+      enabled: yes
+      state: started
+
+  tasks:
+  # Disable swap
+  - name: disable swap in fstab
+    replace:
+      path: /etc/fstab
+      regexp: '^([^#].*?\sswap\s+swap\s+.*)$'
+      replace: '# \1'
+    notify:
+    - disable swap
+
+  # Let iptables see bridged traffic
+  - name: modprob
+    modprobe:
+      name: br_netfilter
+      state: present
+    notify:
+    - sysctl system
+  - name: k8s sysctl config
+    template:
+      src: k8s.conf
+      dest: /etc/sysctl.d/k8s.conf
+    notify:
+    - sysctl system
+
+  # Kubernetes v1.18.2 requires conntrack to be installed in root's path
+  - name: ensure conntrack
+    yum:
+      name: conntrack-tools
+      state: latest
+
+# Firewall
+  - name: minikube api server port
+    firewalld:
+      port: 8443/tcp
+      permanent: yes
+      state: enabled
+    notify:
+    - reload firewall
+
+  # Kubernetes
+  - name: add kubernetes repo for yum
+    template:
+      src: kubernetes.repo
+      dest: /etc/yum.repos.d/kubernetes.repo
+
+  - name: Put SELinux in permissive mode, logging actions that would be blocked.
+    selinux:
+      policy: targeted
+      state: permissive
+
+  # Install kubectl
+  - name: install kubectl
+    yum:
+      name: kubectl
+      state: latest
+
+  # Download and install minikube
+  - name: download minikube rpm
+    get_url:
+      url: https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
+      dest: /tmp/minikube-latest.x86_64.rpm
+  - name: install minikube
+    yum:
+      name: /tmp/minikube-latest.x86_64.rpm
+    notify:
+    - start minikube
+    - enable kubelet.service
